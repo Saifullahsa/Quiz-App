@@ -1,0 +1,80 @@
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+
+type QuestionType = {
+  category: string;
+  type: string;
+  difficulty: string;
+  question: string;
+  correct_answer: string;
+  incorrect_answers: string[];
+};
+
+const Api: Record<string, string> = {
+  easy: "https://opentdb.com/api.php?amount=10&category=9&difficulty=easy&type=multiple",
+  medium: "https://opentdb.com/api.php?amount=10&category=9&difficulty=medium&type=multiple",
+  hard: "https://opentdb.com/api.php?amount=10&category=9&difficulty=hard&type=multiple",
+};
+
+function Quiz_app() {
+  const [difficulty, setDifficulty] = useState<string>("");
+  const navigate = useNavigate();
+
+  const { isLoading, error } = useQuery({
+    queryKey: ["quizData", difficulty],
+    queryFn: async () => {
+      const res = await fetch(Api[difficulty]);
+      if (!res.ok) throw new Error("Failed to fetch questions");
+      const json = await res.json();
+      return json.results as QuestionType[];
+    },
+    enabled: false, 
+  });
+
+  const handleStart = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!difficulty) {
+      alert("❌ Please select a difficulty!");
+      return;
+    }
+    navigate("/quiz", { state: { difficulty } });
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black p-6">
+      <form
+        onSubmit={handleStart}
+        className="w-full max-w-md bg-white p-6 rounded shadow"
+      >
+        <h1 className="text-2xl font-bold mb-2">Quiz App</h1>
+        <p className="mb-4 text-sm">General Knowledge — pick difficulty</p>
+
+        <select
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value)}
+          className="w-full border p-2 rounded mb-4"
+        >
+          <option value="">Pick Difficulty</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+        >
+          {isLoading ? "Loading..." : "Start"}
+        </button>
+
+        {error instanceof Error && (
+          <p className="text-red-600 mt-3">{error.message}</p>
+        )}
+      </form>
+    </div>
+  );
+}
+
+export default Quiz_app;

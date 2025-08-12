@@ -1,0 +1,127 @@
+import React, { useState, useEffect } from "react";
+
+type Type = {
+  category: string;
+  type: string;
+  difficulty: string;
+  question: string;
+  correct_answer: string;
+  incorrect_answers: string[];
+};
+
+const Api: Record<string, string> = {
+  easy: "https://opentdb.com/api.php?amount=10&category=9&difficulty=easy&type=multiple",
+  medium: "https://opentdb.com/api.php?amount=10&category=9&difficulty=medium&type=multiple",
+  hard: "https://opentdb.com/api.php?amount=10&category=9&difficulty=hard&type=multiple",
+};
+
+export default function Question() {
+  const [difficulty, setDifficulty] = useState<string>("");
+  const [questions, setQuestions] = useState<Type[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [start, setStart] = useState<boolean>(false);
+
+  // decode HTML entities returned by OpenTDB
+  const decodeHtml = (html: string) => {
+    const txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  };
+
+  const handleStart = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!difficulty) {
+      setError("Please pick a difficulty before starting.");
+      return;
+    }
+    setStart(true);
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!start || !difficulty) return;
+
+    setLoading(true);
+    fetch(Api[difficulty])
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!isMounted) return;
+        const decoded: Type[] = data.results.map((q: any) => ({
+          ...q,
+          question: decodeHtml(q.question),
+          correct_answer: decodeHtml(q.correct_answer),
+          incorrect_answers: q.incorrect_answers.map((a: string) => decodeHtml(a)),
+        }));
+        setQuestions(decoded);
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        setError(err.message || "Failed to fetch questions");
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setLoading(false);
+        setStart(false); // reset trigger
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [start, difficulty]);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black p-6">
+      <form
+        onSubmit={handleStart}
+        className="w-full max-w-md bg-white p-6 rounded shadow"
+      >
+        <h1 className="text-2xl font-bold mb-2">Quiz App</h1>
+        <p className="mb-4 text-sm">General Knowledge — pick difficulty</p>
+
+        <select
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value)}
+          className="w-full border p-2 rounded mb-4"
+        >
+          <option value="">Pick Difficulty</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+        >
+          {loading ? "Loading..." : "Start"}
+        </button>
+
+        {error && <p className="text-red-600 mt-3">{error}</p>}
+      </form>
+
+      {questions.length > 0 && (
+        <div className="mt-6 w-full max-w-2xl bg-white p-6 rounded shadow">
+          <h2 className="text-xl font-semibold mb-4">Questions</h2>
+          <ul>
+            {questions.map((q, i) => (
+              <li key={i} className="mb-4">
+                <div className="font-medium">{i + 1}. {q.question}</div>
+                <ul className="mt-2 list-disc pl-5">
+                  {[...q.incorrect_answers, q.correct_answer].map((ans, idx) => (
+                    <li key={idx}>{ans}</li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
