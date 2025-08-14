@@ -1,0 +1,15 @@
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 5px #06b6d4, 0 0 10px #06b6d4, 0 0 15px #06b6d4;
+  }
+  50% {
+    box-shadow: 0 0 15px #06b6d4, 0 0 30px #06b6d4, 0 0 45px #06b6d4;
+  }
+  100% {
+    box-shadow: 0 0 5px #06b6d4, 0 0 10px #06b6d4, 0 0 15px #06b6d4;
+  }
+}
+
+.neon-glow {
+  animation: pulse-glow 2s infinite ease-in-out;
+}

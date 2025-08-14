@@ -9,7 +9,9 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
+    <div className='font-mono'>
     <App />
+    </div>
   </React.StrictMode>
 );
 
