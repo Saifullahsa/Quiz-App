@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { replace, useLocation, useNavigate } from "react-router-dom";
 import { HomeIcon } from "@heroicons/react/24/solid";
 
 type Type = {
@@ -14,8 +14,7 @@ type Type = {
 function Question() {
   const location = useLocation();
   const navigate = useNavigate();
-  // const { questions }: { difficulty: string; questions: Type[] } =
-  //   location.state;
+ 
  const data = location.state;
 const questions = data?.questions ?? null;
 
@@ -115,9 +114,10 @@ const questions = data?.questions ?? null;
   };
 
   const handleBack = () => {
-    navigate("/");
+   navigate("/");
   };
 
+  
   useEffect(() => {
     console.log(quiz.final, "final array");
   }, [quiz.final]);
@@ -207,14 +207,13 @@ const questions = data?.questions ?? null;
     );
   }
     if(questions == null){
-     return <div className="min-h-screen bg-black p-6 italic text-red-600 flex 
+      handleBack();
+     return <div className="min-h-screen bg-black p-6 italic text-blue-600 flex 
      flex-col space-y-5 items-center justify-center">
-      <center><h1 className="font-bold text-4xl ">No Data Fount ?</h1></center>
-      <button 
-       className="px-2 py-1 mb-3 bg-blue-600 hover:bg-blue-700 text-white rounded border-2 flex items-center justify-center text-sm"
-      onClick={() => navigate("/")}>GO Back</button>
+      <center><h1 className="font-bold text-4xl ">Loding...</h1></center>
      </div>
     }
+
   return (
     <div className="min-h-screen bg-black p-6 italic">
 
